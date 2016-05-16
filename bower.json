@@ -1,0 +1,16 @@
+{
+  "name": "pharmaguess",
+  "description": "A drug guessing game",
+  "main": "",
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/bower",
+    "test",
+    "tests"
+  ]
+}
