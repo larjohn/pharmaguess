@@ -5,7 +5,7 @@
 
 var data = {
     currentDrug : null,
-    credit : 1000,
+    credit : 100,
     discoveredDrugs : [],
     missedDrugs: [],
     playedDrugs : [],
@@ -24,7 +24,7 @@ $(document).ready(function () {
     $("body").arrive("#retrieve-btn", function () {
         $(this).click(function () {
             $.observable(data.selectedNode).setProperty("locked", false);
-            $.observable(data).setProperty("credit", data.credit - data.selectedNode.cost);
+            $.observable(data).setProperty("credit", (data.credit - data.selectedNode.cost).toFixed(1));
             if(data.selectedNode.root){
                 $.each(data.selectedNode._children, function (index, value) {
                     $.observable(value).setProperty("locked", false);
@@ -37,7 +37,7 @@ $(document).ready(function () {
                 if(data.credit<0)
                     gameOver("Game OVER", "You 're finished");
                 else{
-                    successContinueGame("OK!", "You spoiled it! Do you want to keep trying with the next drug?")
+                    successContinueGame("OK!", "You spoiled it! The drug is "+data.currentDrug.value+". Do you want to keep trying with the next drug?")
                 }
 
             }
@@ -59,7 +59,7 @@ $(document).ready(function () {
                         callback: function() {
                             if($('#guess-list').val()==data.currentDrug.id){
                                 $.observable(data.selectedNode).setProperty("locked", false);
-                                $.observable(data).setProperty("credit", data.credit + data.selectedNode.cost);
+                                $.observable(data).setProperty("credit", Math.min(100,data.credit + data.selectedNode.cost).toFixed(1));
                                 if(data.selectedNode.root){
                                     $.each(data.selectedNode._children, function (index, value) {
                                         $.observable(value).setProperty("locked", false);
@@ -75,7 +75,7 @@ $(document).ready(function () {
                                 successContinueGame("Yeah!", "You are the one! Do you want to keep trying with the next drug?")
                             }
                             else{
-                                $.observable(data).setProperty("credit", data.credit - data.selectedNode.cost/2);
+                                $.observable(data).setProperty("credit", (data.credit - data.selectedNode.cost/2).toFixed(1));
                                 if(data.credit<0)
                                     gameOver("Game OVER", "You 're finished");
                                 else{
@@ -112,14 +112,14 @@ $(document).ready(function () {
                     label: "Go on!",
                     className: "btn-success",
                     callback: function() {
-                        Example.show("great success");
+                        //Example.show("great success");
                     }
                 },
                 danger: {
                     label: "Go Away!",
                     className: "btn-danger",
                     callback: function() {
-                        Example.show("uh oh, look out!");
+                        leaveGame();
                     }
                 },
 
@@ -138,7 +138,8 @@ $(document).ready(function () {
                     label: "Restart!",
                     className: "btn-success",
                     callback: function() {
-                        Example.show("great success");
+                        leaveGame();
+
                     }
                 },
 
@@ -164,7 +165,7 @@ $(document).ready(function () {
                     label: "Tired!",
                     className: "btn-danger",
                     callback: function() {
-                        alert("You will be missed!");
+                        leaveGame();
                     }
                 }
 
@@ -174,6 +175,9 @@ $(document).ready(function () {
 
     loadDrug();
 
+    function leaveGame() {
+        window.location = "end";
+    }
 
     function loadDrug(){
         $.observable(data).setProperty("currentDrug", null);
@@ -254,7 +258,6 @@ $(document).ready(function () {
         this.baseSvg = d3.select("#tree-container").append("svg")
             .attr("width", this.viewerWidth)
             .attr("height", this.viewerHeight)
-            .attr("class", "overlay")
             .call(this.zoomListener);
 
 
@@ -509,6 +512,7 @@ $(document).ready(function () {
         this.node.select("circle.nodeCircle")
             .attr("r", 4.5)
             .style("fill", function(d) {
+                if(d.children || d._children) return "blue";
                 return d.locked ? "red" : "#fff";
             });
 

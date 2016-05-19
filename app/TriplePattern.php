@@ -20,7 +20,7 @@ class TriplePattern
     /**
      * TriplePattern constructor.
      * @param string $name
-     * @param Triple[] $triples
+     * @param TriplePatternPart[] $triples
      */
     public function __construct(string $name, array $triples)
     {

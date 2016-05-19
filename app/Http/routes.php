@@ -12,7 +12,28 @@
 */
 
 Route::get('play', function () {
-    return view('welcome');
+    return view('welcome')->with("name", session("name"));
+});
+
+
+Route::get('end', function () {
+    return Redirect::to("start");
+});
+
+
+Route::post('start', function () {
+
+    session(["name" => request("name")]);
+    return Redirect::to("wake");
+});
+
+Route::get("wake", function () {
+    return view('wake');
+});
+
+
+Route::get('start', function () {
+    return view('start');
 });
 
 Route::get('mol', function () {

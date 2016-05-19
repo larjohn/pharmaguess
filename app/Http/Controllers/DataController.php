@@ -9,6 +9,7 @@
 namespace App\Http\Controllers;
 
 
+use App\Filter;
 use App\Triple;
 use App\TriplePattern;
 use Asparagus\QueryBuilder;
@@ -90,6 +91,32 @@ class DataController extends Controller
         if (Cache::has("drug/{$drugId}"))
             $drug = Cache::get("drug/{$drugId}");
         else {
+
+            $queryBuilder->selectDistinct(["?value", "?description"]);
+
+            $queryBuilder->where("<$drugId>", "dcterms:title", "?value");
+            $queryBuilder->where("<$drugId>", "dcterms:description", "?description");
+
+
+//echo $queryBuilder->format();die;
+
+            /** @var EasyRdf_Sparql_Result $drugsResult */
+            $drugResult = $this->sparql->query(
+                $queryBuilder->getSPARQL()
+            );
+
+            $drug = $this->rdfResultsToArray($drugResult)[0];
+            /** @var TriplePattern[] $patterns */
+
+
+            $drugName = $drug["value"];
+            $re = "/$drugName/i";
+            $subst = "Lost Drug";
+
+            $drug["description"] = preg_replace($re, $subst, $drug["description"]);
+            $drug["description"] = preg_replace("/\\[(drugbank|Wikipedia).*\\]/i", "", $drug["description"]);
+
+
             $patterns = [
                 new TriplePattern("indication", [
                     new Triple("<$drugId>", "<http://bio2rdf.org/drugbank_vocabulary:indication>", "?indic_res"),
@@ -142,6 +169,14 @@ class DataController extends Controller
                     new Triple("?dynamics_res", "dcterms:description", "?dynamics"),
                 ]),
 
+                new TriplePattern("effect", [
+                    new Triple("?s_drug", "a" ,"<http://bio2rdf.org/sider_vocabulary:Drug>"),
+                    new Triple("?s_drug", "<http://purl.org/dc/terms/title>" ,"?s_title"),
+                    new Triple("?s_drug", "<http://bio2rdf.org/sider_vocabulary:side-effect>", "?effect_res"),
+                    new Filter("STR(?s_title)='".strtolower($drug["value"])."'"),
+                    new Triple("?effect_res", "<http://purl.org/dc/terms/title>", "?effect"),
+                ]),
+
                 /*   new TriplePattern("structure", [
                        new Triple("<$drugId>", "<http://bio2rdf.org/drugbank_vocabulary:calculated-properties>",  "?structure_res"),
                        new Triple("?structure_res", "<http://bio2rdf.org/drugbank_vocabulary:value>",  "?structure"),
@@ -159,36 +194,18 @@ class DataController extends Controller
 
 
             ];
-            $queryBuilder->selectDistinct(["?value", "?description"]);
 
-            $queryBuilder->where("<$drugId>", "dcterms:title", "?value", "?compound");
-            $queryBuilder->where("<$drugId>", "dcterms:description", "?description");
-
-
-//echo $queryBuilder->format();die;
-
-            /** @var EasyRdf_Sparql_Result $drugsResult */
-            $drugResult = $this->sparql->query(
-                $queryBuilder->getSPARQL()
-            );
-
-            $drug = $this->rdfResultsToArray($drugResult)[0];
-            /** @var TriplePattern[] $patterns */
-
-
-            $drugName = $drug["value"];
-            $re = "/$drugName/i";
-            $subst = "Lost Drug";
-
-            $drug["description"] = preg_replace($re, $subst, $drug["description"]);
-            $drug["description"] = preg_replace("/\\[(drugbank|Wikipedia).*\\]/i", "", $drug["description"]);
 
 
             foreach ($patterns as $pattern) {
                 $queryBuilder = new QueryBuilder(config("sparql.prefixes"));
                 $queryBuilder->selectDistinct("?" . $pattern->name);
                 foreach ($pattern->triples as $triple) {
-                    $queryBuilder->where($triple->subject, $triple->predicate, $triple->object);
+                    if($triple instanceof Triple)
+                        $queryBuilder->where($triple->subject, $triple->predicate, $triple->object);
+                    elseif ($triple instanceof Filter)
+                        $queryBuilder->filter($triple->filter);
+
                 }
                 $drugResult = $this->sparql->query(
                     $queryBuilder->getSPARQL()
@@ -241,26 +258,27 @@ class DataController extends Controller
 
 
             $costWeights = [
-                "indication" => 10,
-                "mechanism" => 10,
-                "absorption" => 10,
-                "biotransformation" => 10,
-                "elimination" => 10,
-                "halflife" => 10,
-                "target" => 10,
-                "taxonomy" => 10,
-                "dynamics" => 10,
-                "structure" => 10,
-                "category" => 10,
+                "indication" => 1,
+                "mechanism" => 1,
+                "absorption" => 1,
+                "biotransformation" => 1,
+                "elimination" => 1,
+                "halflife" => 1,
+                "target" => 1,
+                "taxonomy" => 1,
+                "dynamics" => 1,
+                "structure" => 1,
+                "category" => 1,
+                "effect" => 1,
             ];
 
             $countChildren = count($drug["children"]);
             foreach ($drug["children"] as &$child) {
                 $factor = count($costWeights) / $countChildren;
-                $child["cost"] = intval($factor * $costWeights[$child["name"]]);
+                $child["cost"] = round(intval($factor * $costWeights[$child["name"]]));
                 if(isset($child["children"]))
                     foreach ($child["children"] as &$sub_child) {
-                        $sub_child["cost"] = $child["cost"]/count($child["children"]);
+                        $sub_child["cost"] = round($child["cost"]/count($child["children"]));
                     }
             }
 
@@ -269,7 +287,7 @@ class DataController extends Controller
             $drug["locked"] = true;
             $drug["root"] = true;
             $drug["id"] = $drugId;
-            $drug["cost"] = 500;
+            $drug["cost"] = 50;
             Cache::forever("drug/{$drugId}", $drug);
 
         }

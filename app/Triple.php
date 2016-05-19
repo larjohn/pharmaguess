@@ -7,7 +7,7 @@ namespace  App;
  * Date: 15/5/2016
  * Time: 3:30 μμ
  */
-class Triple
+class Triple extends TriplePatternPart
 {
     /**
      * @var string
