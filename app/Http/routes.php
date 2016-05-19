@@ -11,6 +11,10 @@
 |
 */
 
+Route::get('/', function () {
+    return Redirect::to('start');
+});
+
 Route::get('play', function () {
     return view('welcome')->with("name", session("name"));
 });

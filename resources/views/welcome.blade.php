@@ -58,6 +58,9 @@
         .node, .link {
             cursor: pointer;
         }
+        #tree-container{
+            display: flex;
+        }
 
 
         .node circle {
@@ -69,12 +72,13 @@
         .node text {
             font-size: 10px;
             font-family: monospace;
-            fill:white;
+            fill:gold;
         }
 
         .link {
             fill: none;
-            stroke: #ccc;
+
+            stroke: darkred;
             stroke-width: 4px;
         }
 
@@ -93,7 +97,9 @@
         }
 
         #inventory{
-            position: static;
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
 
         }
 
@@ -151,8 +157,12 @@
             background-color: #ffb515;
         }
 
+        .awesome:focus{
+            outline:none;
+        }
+
         .awesome{
-            background: #222 url(/images/alert-overlay.png) repeat-x;
+            background: #222 url({{URL::asset("/images/alert-overlay.png")}}) repeat-x;
             display: inline-block;
             padding: 5px 10px 6px;
             color: #fff;
@@ -288,17 +298,19 @@
                 <div style="margin-top:100px"><div class="ball"></div>
                     <div class="ball1"></div></div>
             @{{else}}
-             <div> <h4>Dr. {{$name}} Stealth</h4>
+             <div> <h4 style="color:lightcoral">Dr. {{$name}}'s Stealth</h4>
                 <div id="container">
                     <div class="barOuter"><div class="barInner" data-link="css-width{:100*~root.credit/100+'%'}" ></div><div class="barLabel"> {^{:100*~root.credit/100}}%</div></div>
                 </div>
+
+
 
             </div>
 
 
             <div class="infobit-controls">
                 {^{if ~root.selectedNode!=null}}
-                <h2>Infobit: {^{:~root.selectedNode.name}}</h2>
+                <h2 style="color:cyan">Infobit: {^{:~root.selectedNode.name}}</h2>
                  {^{if ~root.selectedNode.root}}
                     <p style="margin-bottom:50px">{^{:~root.selectedNode.description}}</p>
                  @{{/if}}
@@ -328,7 +340,7 @@
        @{{/if}}
 
         {^{if ~root.selectedNode.root}}
-            <div class="message">Even better, try to <button class="blue small awesome button" id="guess-btn">guess</button> this drug. If you guess correct, you fill up your stealth with an extra {^{:~root.selectedNode.cost}}%. Guess wrong and you loose {^{:~root.selectedNode.cost/2}}%</div>
+            <div class="message">Even better, try to <button class="blue small awesome button" id="guess-btn">guess</button> this drug. If you guess correct, you fill up your stealth with an extra {^{:~root.selectedNode.cost}}%. Guess wrong and you loose {^{:~root.selectedNode.cost/2}}%.</div>
         @{{/if}}
         @{{/if}}
         </div>
@@ -338,13 +350,15 @@
 
 
             </div>
-
-<div class="alert alert-danger fade in">
+{^{if !~root.guidehidden}}
+<div class="alert alert-danger fade in" id="guide">
     <a href="#" class="close" data-dismiss="alert">&times;</a>
     <strong>Sssshhh! Welcome!</strong> <p> Click on the hidden infobits of the knowledge net. Each time you retrieve an infobit from the Battle Computer, your stealth decreases. </p> <p>Try to recover as few infobits as possible, in order to guess the drug that lies at the root of the net. </p><p> Go on and guess as many drugs as you can to bring health back to our fellow humans!</p>
 </div>
+
+@{{/if}}
             <div id="inventory">
-                <h3>Discovered Drugs Inventory</h3>
+                <h3 style="color:gold">Discovered Drugs Inventory</h3>
                  <ul>
                     {^{for ~root.discoveredDrugs}}
                         <li>{^{:value}}</li>

@@ -13,5 +13,5 @@ return [
         'rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
         'dcterms' => "http://purl.org/dc/terms/"
     ],
-    "endpoint" =>'http://localhost:8890/sparql'
+    "endpoint" =>'http://bio2rdf.org/sparql'
 ];

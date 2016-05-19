@@ -83,8 +83,7 @@ class DataController extends Controller
         );
         $drugs = $this->rdfResultsToArray($drugsResult);
 
-        $index = 4;
-        rand(0, count($drugs));
+        $index = rand(0, count($drugs));
 
         $drugId = $drugs[$index]["id"];
 
@@ -114,7 +113,7 @@ class DataController extends Controller
             $subst = "Lost Drug";
 
             $drug["description"] = preg_replace($re, $subst, $drug["description"]);
-            $drug["description"] = preg_replace("/\\[(drugbank|Wikipedia).*\\]/i", "", $drug["description"]);
+            $drug["description"] = preg_replace("/\\[(drugbank|Wikipedia|PubChem).*\\]/i", "", $drug["description"]);
 
 
             $patterns = [
@@ -164,9 +163,9 @@ class DataController extends Controller
                 ]),
 
 
-                new TriplePattern("dynamics", [
+                new TriplePattern("pharmacodynamics", [
                     new Triple("<$drugId>", "<http://bio2rdf.org/drugbank_vocabulary:pharmacology>", "?dynamics_res"),
-                    new Triple("?dynamics_res", "dcterms:description", "?dynamics"),
+                    new Triple("?dynamics_res", "dcterms:description", "?pharmacodynamics"),
                 ]),
 
                 new TriplePattern("effect", [
@@ -207,6 +206,8 @@ class DataController extends Controller
                         $queryBuilder->filter($triple->filter);
 
                 }
+
+                echo $queryBuilder->format();
                 $drugResult = $this->sparql->query(
                     $queryBuilder->getSPARQL()
                 );
@@ -221,17 +222,21 @@ class DataController extends Controller
                 if (count($valuesArray) > 1) {
 
                     $hub = ["name"=>$pattern->name, "value"=>"", "locked"=>false, "hub"=>true];
+                    $i = 1;
+                    $width = ceil(log10(count($valuesArray)+1));
                     foreach ($valuesArray as $drugElement) {
+
                         $value = $drugElement[$pattern->name];
 
                         $value = $this->getValue($value, [
-                                "/\\[(drugbank|Wikipedia).*\\]/i" => "",
+                                "/\\[(drugbank|Wikipedia|PubChem).*\\]/i" => "",
                                 "/$drugName/i" => "Lost Drug"
                             ]
                         );
 
 
-                        $hub["children"][] = ["name" => $pattern->name, "value" => $value, "locked" => true];
+                        $hub["children"][] = ["name" => $pattern->name."#".str_pad((string)$i, $width, "0", STR_PAD_LEFT), "value" => $value, "locked" => true];
+                        $i++;
                     }
 
                     $drug["children"][] = $hub;
@@ -242,7 +247,7 @@ class DataController extends Controller
                     $value = $valuesArray[0][$pattern->name];
 
                     $value = $this->getValue($value, [
-                            "/\\[(drugbank|wikipedia).*\\]/i" => "",
+                            "/\\[(drugbank|wikipedia|PubChem).*\\]/i" => "",
                             "/$drugName/i" => "Lost Drug"
                         ]
                     );
@@ -254,27 +259,28 @@ class DataController extends Controller
 
             }
 
-            
+            die;
 
 
             $costWeights = [
-                "indication" => 1,
-                "mechanism" => 1,
-                "absorption" => 1,
-                "biotransformation" => 1,
-                "elimination" => 1,
+                "indication" => 5,
+                "mechanism" => 5,
+                "absorption" => 2,
+                "biotransformation" => 2,
+                "elimination" => 2,
                 "halflife" => 1,
-                "target" => 1,
-                "taxonomy" => 1,
-                "dynamics" => 1,
-                "structure" => 1,
-                "category" => 1,
-                "effect" => 1,
+                "target" => 5,
+                "taxonomy" => 10,
+                "pharmacodynamics" => 10,
+                "structure" => 2,
+                "category" => 5,
+                "effect" => 2,
             ];
+            $drug["cost"] = 50;
 
-            $countChildren = count($drug["children"]);
+            $sum = array_sum($costWeights);
             foreach ($drug["children"] as &$child) {
-                $factor = count($costWeights) / $countChildren;
+                $factor =  $drug["cost"]/ $sum;
                 $child["cost"] = round(intval($factor * $costWeights[$child["name"]]));
                 if(isset($child["children"]))
                     foreach ($child["children"] as &$sub_child) {
@@ -287,7 +293,6 @@ class DataController extends Controller
             $drug["locked"] = true;
             $drug["root"] = true;
             $drug["id"] = $drugId;
-            $drug["cost"] = 50;
             Cache::forever("drug/{$drugId}", $drug);
 
         }

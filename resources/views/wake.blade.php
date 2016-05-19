@@ -65,8 +65,12 @@
             background-color: #ffb515;
         }
 
+        .awesome:focus{
+            outline:none;
+        }
+
         .awesome{
-            background: #222 url(/images/alert-overlay.png) repeat-x;
+            background: #222 url({{URL::asset("/images/alert-overlay.png")}}) repeat-x;
             display: inline-block;
             padding: 5px 10px 6px;
             color: #fff;
@@ -110,9 +114,9 @@
         Wake up Doctor!
     </h2>
     <p> TARDIS has brought you in 2079.</p>
-    <p>The Daleks have swept away our knowledge sources. In the medical field, this means we don't know how to fight disease any more. Big pharma and the naturopaths have all worshiped Davros and conspired with the Daleks.</p>
+    <p>The Daleks have swept away our knowledge sources. In the medical field, this means we don't know how to fight disease any more. To our surprise, both Big Pharma and the naturopaths have worshiped Davros and conspired with the Daleks.</p>
 
-    <p> People are suffering of ancient diseases and their only hope is the hackers from the Open Knowledge Foundation. You are the only one who can help the Foundation retrieve information about medication, by breaking into the Battle Computer, tonight.</p>
+    <p> People are suffering of ancient diseases and their last hope are the hackers from the Open Knowledge Foundation. You are the only one who can help the Foundation retrieve information on medications, by breaking into the enemy's Battle Computer, tonight.</p>
 
     <p>You gotta be careful tho' - remain stealth, otherwise they are going to destroy the information we are seeking for.</p>
 

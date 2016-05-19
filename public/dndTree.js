@@ -21,6 +21,12 @@ $(document).ready(function () {
 
     template.link("#result", data);
 
+    $("body").arrive("svg", function () {
+       $(this).click(function () {
+           $("#guide").hide();
+       });
+    });
+
     $("body").arrive("#retrieve-btn", function () {
         $(this).click(function () {
             $.observable(data.selectedNode).setProperty("locked", false);
@@ -320,7 +326,7 @@ $(document).ready(function () {
 
     Tree.prototype.sortTree= function() {
         this.tree.sort(function(a, b) {
-            return b.name.toLowerCase() < a.name.toLowerCase() ? 1 : -1;
+            return (b.name+b.value).toLowerCase() < (a.name+a.value).toLowerCase() ? 1 : -1;
         });
     };
     // Sort the tree initially incase the JSON isn't in a sorted order.
@@ -392,6 +398,9 @@ $(document).ready(function () {
     // Toggle children on click.
 
     Tree.prototype.click = function (d) {
+        $("#guide").hide();
+
+        $.observable(data).setProperty("guidehidden", true);
         if (d3.event.defaultPrevented) return; // click suppressed
         $.observable(data).setProperty("selectedNode", null);
         $.observable(data).setProperty("selectedNode", d);
@@ -499,10 +508,10 @@ $(document).ready(function () {
         // Update the text to reflect whether node has children or not.
         this.node.select('text')
             .attr("x", function(d) {
-                return d.children || d._children ? -10 : 10;
+                return d.children  ? -10 : 10;
             })
             .attr("text-anchor", function(d) {
-                return d.children || d._children ? "end" : "start";
+                return d.children? "end" : "start";
             })
             .text(function(d) {
                 return d.name;

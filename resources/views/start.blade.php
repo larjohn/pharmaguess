@@ -56,8 +56,12 @@
             background-color: #ffb515;
         }
 
+        .awesome:focus{
+            outline:none;
+        }
+
         .awesome{
-            background: #222 url(/images/alert-overlay.png) repeat-x;
+            background: #222 url({{URL::asset("/images/alert-overlay.png")}}) repeat-x;
             display: inline-block;
             padding: 5px 10px 6px;
             color: #fff;
