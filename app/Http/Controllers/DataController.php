@@ -207,7 +207,7 @@ class DataController extends Controller
 
                 }
 
-                echo $queryBuilder->format();
+                //echo $queryBuilder->format();
                 $drugResult = $this->sparql->query(
                     $queryBuilder->getSPARQL()
                 );
@@ -259,7 +259,7 @@ class DataController extends Controller
 
             }
 
-            die;
+
 
 
             $costWeights = [
